@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wave Visualizer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #000;
+      color: white;
+    }
+    .visualization-container {
+      height: 60vh;
+      background: black;
+    }
+    #waveCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .controls-section {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: white;
+      color: black;
+    }
+    #webcam {
+      width: 300px;
+      height: auto;
+      border-radius: 10px;
+    }
+    .controls-panel {
+      flex: 1;
+      margin: 0 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+      position: relative;
+    }
+    .controls-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      grid-column: 1 / -1;
+      margin-bottom: 16px;
+    }
+    .controls-panel-header label {
+      margin: 0 0 0 10px;
+    }
+    .controls-panel h3 {
+      margin-top: 0;
+      margin-bottom: 0;
+      font-size: 1.2em;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+    }
+    .toggle-group {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      margin-top: 0;
+      width: 100%;
+    }
+    .slider-group label,
+    .toggle-group label {
+      width: 100%;
+    }
+    .slider-group input[type="range"],
+    .toggle-group input[type="range"] {
+      width: 100%;
+    }
+    label {
+      display: block;
+      margin: 18px 0 0 0;
+      font-weight: 500;
+    }
+    /* Custom slider styles */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 20px;
+      background: transparent;
+      margin-top: 8px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      background: linear-gradient(to right, #1a2233 var(--percent, 50%), #e9ecf1 var(--percent, 50%));
+      border-radius: 3px;
+      position: relative;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -7px; /* Center the thumb vertically */
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1a2233;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    input[type="range"]:focus::-webkit-slider-thumb {
+      background: #2e3a59;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1a2233;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    input[type="range"]:focus::-moz-range-thumb {
+      background: #2e3a59;
+    }
+    input[type="range"]::-ms-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1a2233;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    input[type="range"]::-ms-fill-lower {
+      background: #1a2233;
+      border-radius: 3px;
+    }
+    input[type="range"]::-ms-fill-upper {
+      background: #e9ecf1;
+      border-radius: 3px;
+    }
+    input[type="range"]:focus {
+      outline: none;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      background: #e9ecf1;
+      border-radius: 3px;
+    }
+    input[type="range"]::-moz-range-progress {
+      background-color: #1a2233;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type="range"]::-ms-tooltip {
+      display: none;
+    }
+    /* Custom toggle switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #e9ecf1;
+      border-radius: 24px;
+      transition: .4s;
+      border: 1px solid #ccc;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #1a2233;
+      border-radius: 50%;
+      transition: .4s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    input:checked + .slider {
+      background-color: #1a2233;
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: #fff;
+    }
+    /* Responsive tweaks */
+    @media (max-width: 900px) {
+      .controls-section {
+        flex-direction: column;
+      }
+      .controls-panel {
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="visualization-container">
+    <canvas id="waveCanvas"></canvas>
+  </div>
+  <div class="controls-section">
+    <div class="camera-feed">
+      <video id="webcam" autoplay muted playsinline></video>
+    </div>
+    <div class="controls-panel">
+      <div class="controls-panel-header">
+        <h3>Controls</h3>
+        <label style="margin:0;">Camera
+          <span class="switch">
+            <input type="checkbox" id="cameraToggle">
+            <span class="slider"></span>
+          </span>
+        </label>
+        <label style="margin:0;">Dark
+          <span class="switch">
+            <input type="checkbox" id="themeToggle" checked>
+            <span class="slider"></span>
+          </span>
+        </label>
+      </div>
+      <div class="slider-group">
+        <label>Lines x <input type="range" id="linesX" min="5" max="100" value="50"></label>
+        <label>Lines y <input type="range" id="linesY" min="5" max="100" value="50"></label>
+      </div>
+      <div class="toggle-group">
+        <label>Speed <input type="range" id="speed" min="0.1" max="5" value="1" step="0.1"></label>
+        <label>Amplitude <input type="range" id="amplitude" min="0" max="10" value="2" step="0.1"></label>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000); // Set black background
+    const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: document.getElementById("waveCanvas"), 
+      antialias: true,
+      alpha: true 
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    camera3D.position.z = 50;
+
+    // Add OrbitControls
+    const controls = new OrbitControls(camera3D, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.enableRotate = true;
+
+    // Add a light to make the wireframe more visible
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(ambientLight);
+
+    let geometry, mesh;
+    let linesX = 50, linesY = 50, amplitude = 2, speed = 1;
+    const gridSize = 100; // Fixed grid size
+    let color = "#00ffcc"; // Wireframe color
+    const waveType = "sin"; // Fixed wave type
+
+    function updateTheme(isDark) {
+      scene.background = new THREE.Color(isDark ? 0x000000 : 0xffffff);
+      color = isDark ? "#00ffcc" : "#000000";
+      if (mesh) {
+        mesh.material.color.set(color);
+      }
+    }
+
+    function createWave(x, y, a) {
+      if (mesh) scene.remove(mesh);
+      geometry = new THREE.PlaneGeometry(gridSize, gridSize, x, y);
+      const material = new THREE.MeshBasicMaterial({ 
+        color: new THREE.Color(color), 
+        wireframe: true,
+        transparent: true,
+        opacity: 1
+      });
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.rotation.x = THREE.MathUtils.degToRad(a);
+      scene.add(mesh);
+    }
+
+    createWave(linesX, linesY, 45);
+    updateTheme(true); // Initialize with dark theme
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = performance.now() * 0.001 * speed;
+
+      // Update controls first
+      controls.update();
+
+      if (geometry && geometry.attributes.position) {
+        const pos = geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i);
+          const y = pos.getY(i);
+          const z = Math.sin(x * 0.1 + time) * amplitude + Math.cos(y * 0.1 + time) * amplitude;
+          pos.setZ(i, z);
+        }
+        pos.needsUpdate = true;
+      }
+
+      renderer.render(scene, camera3D);
+    }
+
+    animate();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight * 0.6;
+      
+      camera3D.aspect = width / height;
+      camera3D.updateProjectionMatrix();
+      
+      renderer.setSize(width, height);
+    });
+
+    document.getElementById("linesX").addEventListener("input", (e) => {
+      linesX = parseInt(e.target.value);
+      createWave(linesX, linesY, 45);
+    });
+
+    document.getElementById("linesY").addEventListener("input", (e) => {
+      linesY = parseInt(e.target.value);
+      createWave(linesX, linesY, 45);
+    });
+
+    document.getElementById("amplitude").addEventListener("input", (e) => {
+      amplitude = parseFloat(e.target.value);
+    });
+
+    document.getElementById("speed").addEventListener("input", (e) => {
+      speed = parseFloat(e.target.value);
+    });
+
+    document.getElementById("themeToggle").addEventListener("change", (e) => {
+      updateTheme(e.target.checked);
+    });
+
+    // Set slider fill for webkit browsers
+    function setSliderFill(slider) {
+      const min = slider.min ? parseFloat(slider.min) : 0;
+      const max = slider.max ? parseFloat(slider.max) : 100;
+      const val = slider.value ? parseFloat(slider.value) : 0;
+      const percent = ((val - min) * 100) / (max - min);
+      slider.style.setProperty('--percent', percent + '%');
+    }
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      setSliderFill(slider);
+      slider.addEventListener('input', function() {
+        setSliderFill(this);
+      });
+    });
+  </script>
+</body>
+</html>

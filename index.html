@@ -4,203 +4,349 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wave Visualizer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VIZZER</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       margin: 0;
-      font-family: 'Archivo', sans-serif;
-      background: #000;
-      color: white;
+      font-family: 'Share Tech Mono', monospace;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+      color: #ffffff;
+      overflow-x: hidden;
+      position: relative;
     }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 255, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 40% 60%, rgba(0, 255, 136, 0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .header {
+      background: linear-gradient(90deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+      border-bottom: 2px solid #00ff88;
+      padding: 15px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+      animation: scan 3s infinite;
+    }
+    
+    @keyframes scan {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    .header h1 {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 2.5em;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #ffffff;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9em;
+      color: #ffffff;
+      margin-top: 5px;
+      opacity: 0.8;
+    }
+    
     .visualization-container {
-      height: 60vh;
-      background: black;
+      height: calc(100vh - 40px);
+      background: #000000;
+      border: 1px solid #00ff88;
+      margin: 20px;
+      border-radius: 5px;
+      position: relative;
+      overflow: hidden;
     }
+    
+    .visualization-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(90deg, transparent 0%, rgba(0, 255, 136, 0.05) 50%, transparent 100%),
+        linear-gradient(0deg, transparent 0%, rgba(0, 255, 255, 0.03) 50%, transparent 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
     #waveCanvas {
       width: 100%;
       height: 100%;
       display: block;
+      position: relative;
+      z-index: 2;
     }
+    
     .controls-section {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      background: white;
-      color: black;
-      margin-bottom: 0;
-      flex-wrap: wrap;
-      gap: 20px;
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 280px;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      border: 1px solid #00ff88;
+      border-radius: 5px;
+      padding: 15px;
+      z-index: 10;
+      backdrop-filter: blur(5px);
     }
+    
+    .controls-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 30% 30%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      border-radius: 5px;
+    }
+    
     .camera-feed {
-      width: 300px;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 200px;
+      z-index: 10;
+      display: none;
     }
+    
+    .camera-feed::before {
+      position: absolute;
+      top: -20px;
+      left: 0;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7em;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
     #webcam {
       width: 300px;
       height: auto;
-      border-radius: 10px;
+      border: 1px solid #00ff88;
+      border-radius: 3px;
+      background: #000;
+      filter: contrast(1.2) brightness(0.8) saturate(0.8);
     }
-    .left-column {
+    
+    .controls-panel {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      border-radius: 5px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-    }
-    .controls-panel {
-      flex: 1;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: start;
       position: relative;
+      z-index: 1;
     }
+    
+    .controls-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(45deg, transparent 0%, rgba(0, 255, 136, 0.03) 50%, transparent 100%);
+      pointer-events: none;
+      border-radius: 5px;
+    }
+    
     .controls-panel-header {
       display: flex;
       align-items: center;
-      grid-column: 1 / -1;
-      margin-bottom: 16px;
-      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 2;
     }
+    
     .controls-panel-header h3 {
-      margin-right: auto;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+      color: #ffffff;
     }
+    
     .controls-panel-header label {
       margin: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #ffffff;
     }
-    .controls-panel h3 {
-      margin-top: 0;
-      margin-bottom: 0;
-      font-size: 1.5em;
-      font-weight: 600;
-    }
-    .slider-group {
+    
+    .slider-group, .toggle-group {
       display: flex;
       flex-direction: column;
-      gap: 0;
       width: 100%;
+      position: relative;
+      z-index: 2;
     }
-    .toggle-group {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0;
-      margin-top: 0;
-      width: 100%;
-    }
+    
     .slider-group label,
     .toggle-group label {
       width: 100%;
       font-weight: 400;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #ffffff;
     }
+    
     .slider-group input[type="range"],
     .toggle-group input[type="range"] {
       width: 100%;
     }
+    
     label {
       display: block;
       margin: 18px 0 0 0;
       font-weight: 500;
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #ffffff;
     }
-    /* Custom slider styles */
+    
+    /* Custom slider styles - Alien themed */
     input[type="range"] {
       -webkit-appearance: none;
       width: 100%;
       height: 20px;
       background: transparent;
-      margin-top: 8px;
-      margin-bottom: 8px;
+      margin-top: 6px;
+      margin-bottom: 6px;
       position: relative;
     }
+    
     input[type="range"]::-webkit-slider-runnable-track {
-      height: 6px;
-      background: linear-gradient(to right, #1a2233 var(--percent, 50%), #e9ecf1 var(--percent, 50%));
-      border-radius: 3px;
+      height: 8px;
+      background: linear-gradient(to right, #00ff88 var(--percent, 50%), #1a1a1a var(--percent, 50%));
+      border: 1px solid #00ff88;
+      border-radius: 4px;
       position: relative;
     }
+    
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      margin-top: -7px; /* Center the thumb vertically */
-      width: 20px;
-      height: 20px;
+      margin-top: -6px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      background: #1a2233;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      background: #00ff88;
+      border: 2px solid #000;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
+    
+    input[type="range"]:hover::-webkit-slider-thumb {
+      background: #00ffff;
+    }
+    
     input[type="range"]:focus::-webkit-slider-thumb {
-      background: #2e3a59;
+      background: #00ffff;
     }
+    
     input[type="range"]::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      background: #1a2233;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      background: #00ff88;
+      border: 2px solid #000;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
+    
+    input[type="range"]:hover::-moz-range-thumb {
+      background: #00ffff;
+    }
+    
     input[type="range"]:focus::-moz-range-thumb {
-      background: #2e3a59;
+      background: #00ffff;
     }
-    input[type="range"]::-ms-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #1a2233;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      cursor: pointer;
-      transition: background 0.2s;
+    
+    input[type="range"]::-moz-range-track {
+      height: 8px;
+      background: #1a1a1a;
+      border: 1px solid #00ff88;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
     }
-    input[type="range"]::-ms-fill-lower {
-      background: #1a2233;
-      border-radius: 3px;
+    
+    input[type="range"]::-moz-range-progress {
+      background: linear-gradient(to right, #00ff88, #00ffff);
+      height: 8px;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
     }
-    input[type="range"]::-ms-fill-upper {
-      background: #e9ecf1;
-      border-radius: 3px;
-    }
+    
     input[type="range"]:focus {
       outline: none;
     }
-    input[type="range"]::-moz-range-track {
-      height: 6px;
-      background: #e9ecf1;
-      border-radius: 3px;
-    }
-    input[type="range"]::-moz-range-progress {
-      background-color: #1a2233;
-      height: 6px;
-      border-radius: 3px;
-    }
-    input[type="range"]::-ms-tooltip {
-      display: none;
-    }
-    /* Custom toggle switch */
+    
+    /* Custom toggle switch - Alien themed */
     .switch {
       position: relative;
       display: inline-block;
-      width: 44px;
-      height: 24px;
+      width: 40px;
+      height: 22px;
       vertical-align: middle;
       margin-left: 8px;
     }
+    
     .switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
+    
     .slider {
       position: absolute;
       cursor: pointer;
@@ -208,99 +354,215 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #e9ecf1;
-      border-radius: 24px;
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      border: 2px solid #00ff88;
+      border-radius: 28px;
       transition: .4s;
-      border: 1px solid #ccc;
     }
+    
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
+      height: 12px;
+      width: 12px;
       left: 3px;
       bottom: 3px;
-      background-color: #1a2233;
+      background: linear-gradient(135deg, #00ff88 0%, #00ffff 100%);
       border-radius: 50%;
       transition: .4s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
+    
     input:checked + .slider {
-      background-color: #1a2233;
+      background: linear-gradient(135deg, #00ff88 0%, #00ffff 100%);
     }
+    
     input:checked + .slider:before {
-      transform: translateX(20px);
-      background-color: #fff;
+      transform: translateX(18px);
+      background: #000;
     }
+    
     /* Responsive tweaks */
     @media (max-width: 900px) {
       .controls-section {
         flex-direction: column;
       }
-      .controls-panel {
-        margin: 10px 0;
+      .header h1 {
+        font-size: 2em;
       }
     }
+    
     .gesture-instructions {
+      position: absolute;
+      top: 200px;
+      left: 20px;
       width: 300px;
-      text-align: center;
-      padding: 8px;
-      border: 1px solid #eee;
-      border-radius: 6px;
-      font-size: 0.9em;
-      color: #333;
+      text-align: left;
+      padding: 10px;
+      border: 1px solid #00ff88;
+      border-radius: 3px;
+      font-size: 0.6em;
+      color: #ffffff;
       display: none;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      z-index: 10;
+      backdrop-filter: blur(5px);
     }
+    
+    .gesture-instructions::before {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6em;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
     .gesture-instructions p {
-      margin: 4px 0;
+      margin: 8px 0;
       font-weight: 400;
+      color: #ffffff;
     }
+    
     .gesture-icons {
       font-size: 1.2em;
       vertical-align: middle;
       margin: 0 4px;
     }
+    
+    /* Status indicators */
+    .status-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+    
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #00ff88;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Glitch effect for title */
+    .glitch {
+      position: relative;
+    }
+    
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .glitch::before {
+      animation: glitch-1 2s infinite linear alternate-reverse;
+      color: #ff0080;
+      z-index: -1;
+    }
+    
+    .glitch::after {
+      animation: glitch-2 3s infinite linear alternate-reverse;
+      color: #0080ff;
+      z-index: -2;
+    }
+    
+    @keyframes glitch-1 {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(-2px, -2px); }
+      60% { transform: translate(2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+    }
+    
+    @keyframes glitch-2 {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(2px, -2px); }
+      40% { transform: translate(2px, 2px); }
+      60% { transform: translate(-2px, -2px); }
+      80% { transform: translate(-2px, 2px); }
+    }
+    
+    /* Fullscreen button */
+    .fullscreen-btn {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      border: 1px solid #00ff88;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      margin-left: 10px;
+    }
+    
+    .fullscreen-btn:hover {
+      background: linear-gradient(135deg, #00ff88 0%, #00ffff 100%);
+      color: #000;
+    }
+    
+    .fullscreen-btn:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 <body>
+  
   <div class="visualization-container">
     <canvas id="waveCanvas"></canvas>
-  </div>
-  <div class="controls-section">
-    <div class="left-column">
-      <div class="camera-feed">
-        <video id="webcam" autoplay muted playsinline></video>
-      </div>
-      <div class="gesture-instructions">
-        <p>Hand Controls (Camera Toggle On):</p>
-        <p><span class="gesture-icons">👋</span> Open Hand: Increase value</p>
-        <p><span class="gesture-icons">✊</span> Closed Hand: Decrease value</p>
-        <p>Use Right hand for Speed, Left hand for Amplitude.</p>
-      </div>
+    
+    <div class="camera-feed">
+      <video id="webcam" autoplay muted playsinline></video>
     </div>
-    <div class="controls-panel">
-      <div class="controls-panel-header">
-        <h3>Controls</h3>
-        <label style="margin:0;">Camera
-          <span class="switch">
-            <input type="checkbox" id="cameraToggle" >
-            <span class="slider"></span>
-          </span>
-        </label>
-        <label style="margin:0;">Dark
-          <span class="switch">
-            <input type="checkbox" id="themeToggle" checked>
-            <span class="slider"></span>
-          </span>
-        </label>
-      </div>
-      <div class="slider-group">
-        <label>Lines x <input type="range" id="linesX" min="5" max="100" value="50"></label>
-        <label>Lines y <input type="range" id="linesY" min="5" max="100" value="50"></label>
-      </div>
-      <div class="toggle-group">
-        <label>Speed <input type="range" id="speed" min="0.1" max="5" value="1" step="0.1"></label>
-        <label>Amplitude <input type="range" id="amplitude" min="0" max="10" value="2" step="0.1"></label>
+    
+    <div class="gesture-instructions">
+      <p>Hand Controls:</p>
+      <p><span class="gesture-icons">👋</span> Open Hand: Increase value</p>
+      <p><span class="gesture-icons">✊</span> Closed Hand: Decrease value</p>
+      <p>Right hand = Wave Ampitude</p>
+      <p>Left hand = Wave Speed</p>
+    </div>
+    
+    <div class="controls-section">
+      <div class="controls-panel">
+        <div class="controls-panel-header">
+          <label style="margin:0;">Video Feed
+            <span class="switch">
+              <input type="checkbox" id="cameraToggle" >
+              <span class="slider"></span>
+            </span>
+          </label>
+          <button id="fullscreenBtn" class="fullscreen-btn">⛶</button>
+        </div>
+        <p style="font-size:12px; text-transform: uppercase;">Turn on Video Feed to enable hand gesture controls</p>
+        <div class="slider-group">
+          <label>GRID DENSITY X <input type="range" id="linesX" min="5" max="100" value="50"></label>
+          <label>GRID DENSITY Y <input type="range" id="linesY" min="5" max="100" value="50"></label>
+        </div>
+        <div class="toggle-group">
+          <label>WAVE VELOCITY <input type="range" id="speed" min="0.1" max="5" value="1" step="0.1"></label>
+          <label>AMPLITUDE MOD <input type="range" id="amplitude" min="0" max="10" value="2" step="0.1"></label>
+        </div>
       </div>
     </div>
   </div>
@@ -327,7 +589,7 @@
       antialias: true,
       alpha: true 
     });
-    renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
+    renderer.setSize(window.innerWidth - 40, window.innerHeight - 40);
     renderer.setPixelRatio(window.devicePixelRatio);
     camera3D.position.z = 50;
 
@@ -339,19 +601,24 @@
     controls.enablePan = true;
     controls.enableRotate = true;
 
-    // Add a light to make the wireframe more visible
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    // Add alien-style lighting
+    const ambientLight = new THREE.AmbientLight(0x00ff88, 0.3);
     scene.add(ambientLight);
+    
+    // Add a subtle green point light for alien atmosphere
+    const pointLight = new THREE.PointLight(0x00ff88, 0.5, 100);
+    pointLight.position.set(0, 0, 50);
+    scene.add(pointLight);
 
     let geometry, mesh;
     let linesX = 50, linesY = 50, amplitude = 2, speed = 1;
     const gridSize = 100; // Fixed grid size
-    let color = "#00ffcc"; // Wireframe color
+    let color = "#00ff88"; // Alien green wireframe color
     const waveType = "sin"; // Fixed wave type
 
     function updateTheme(isDark) {
-      scene.background = new THREE.Color(isDark ? 0x000000 : 0xffffff);
-      color = isDark ? "#00ffcc" : "#000000";
+      scene.background = new THREE.Color(isDark ? 0x000000 : 0x0a0a0a);
+      color = isDark ? "#00ff88" : "#00ffff";
       if (mesh) {
         mesh.material.color.set(color);
       }
@@ -364,7 +631,7 @@
         color: new THREE.Color(color), 
         wireframe: true,
         transparent: true,
-        opacity: 1
+        opacity: 0.9
       });
       mesh = new THREE.Mesh(geometry, material);
       mesh.rotation.x = THREE.MathUtils.degToRad(a);
@@ -399,8 +666,8 @@
 
     // Handle window resize
     window.addEventListener('resize', () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight * 0.6;
+      const width = window.innerWidth - 40;
+      const height = window.innerHeight - 40;
       
       camera3D.aspect = width / height;
       camera3D.updateProjectionMatrix();
@@ -426,9 +693,7 @@
       speed = parseFloat(e.target.value);
     });
 
-    document.getElementById("themeToggle").addEventListener("change", (e) => {
-      updateTheme(e.target.checked);
-    });
+
 
     // Set slider fill for webkit browsers
     function setSliderFill(slider) {
@@ -482,10 +747,6 @@
       await cameraMediapipe.start();
       // Optionally make video visible
       videoElement.style.display = 'block';
-      // Show instructions
-      if (gestureInstructions) {
-        gestureInstructions.style.display = 'block';
-      }
       console.log('MediaPipe Camera started.');
     }
 
@@ -497,10 +758,6 @@
         videoElement.style.display = 'none';
         console.log('MediaPipe Camera stopped.');
         cameraMediapipe = undefined; // Clear the reference
-        // Hide instructions
-        if (gestureInstructions) {
-          gestureInstructions.style.display = 'none';
-        }
       }
     }
 
@@ -585,12 +842,59 @@
 
     // Event listener for camera toggle
     document.getElementById('cameraToggle').addEventListener('change', (e) => {
+      const cameraFeed = document.querySelector('.camera-feed');
+      const gestureInstructions = document.querySelector('.gesture-instructions');
       if (e.target.checked) {
+        cameraFeed.style.display = 'block';
+        gestureInstructions.style.display = 'block';
         startCamera();
       } else {
+        cameraFeed.style.display = 'none';
+        gestureInstructions.style.display = 'none';
         stopCamera();
       }
     });
+    
+    // Fullscreen functionality
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const visualizationContainer = document.querySelector('.visualization-container');
+    
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        // Enter fullscreen
+        if (visualizationContainer.requestFullscreen) {
+          visualizationContainer.requestFullscreen();
+        } else if (visualizationContainer.webkitRequestFullscreen) {
+          visualizationContainer.webkitRequestFullscreen();
+        } else if (visualizationContainer.msRequestFullscreen) {
+          visualizationContainer.msRequestFullscreen();
+        }
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    });
+    
+    // Update fullscreen button text when fullscreen state changes
+    document.addEventListener('fullscreenchange', updateFullscreenButton);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+    document.addEventListener('msfullscreenchange', updateFullscreenButton);
+    
+    function updateFullscreenButton() {
+      if (document.fullscreenElement) {
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.title = 'Exit Fullscreen';
+      } else {
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.title = 'Enter Fullscreen';
+      }
+    }
   </script>
 </body>
 </html>
